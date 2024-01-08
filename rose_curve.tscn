@@ -1,0 +1,136 @@
+[gd_scene load_steps=3 format=2]
+
+[sub_resource type="Shader" id=1]
+code = "shader_type canvas_item;
+
+// TODO: Proper denominator handling
+// TODO: Automatic iteration count calculation
+
+uniform float scale: hint_range(0.0, 10.0) = 1.0;
+uniform float offset = 0.0;
+
+uniform float numerator: hint_range(1, 7);
+uniform float denominator: hint_range(1, 9);
+
+uniform int max_iters: hint_range(1, 4096) = 8;
+
+uniform bool use_time = false;
+uniform float time = 0.0;
+
+const float PI = 3.14159;
+const float TAU = 6.28318;
+const float INF = 1.0 / 0.0;
+
+vec2 center_uv(vec2 uv) {
+	return (uv * 2.0) - 1.0;
+}
+
+vec2 cartesian_to_polar(vec2 cartesian) {
+	// Radius
+	float r = length(cartesian);
+
+	// Angle
+	float theta = atan(cartesian.y, cartesian.x);
+	
+	if(cartesian.y < 0.0) {
+		theta += TAU;
+	}
+	
+	return vec2(theta, r);
+}
+
+// Normalized sine - takes input in 0..1 range instead of 0..PI
+float sin_norm(float k) {
+	return sin(k * PI);
+}
+
+// Normalized cosine - takes input in 0..1 range instead of 0..PI
+float cos_norm(float k) {
+	return cos(k * PI);
+}
+
+void fragment() {
+	vec2 uv = center_uv(UV);
+	
+	vec2 polar = cartesian_to_polar(uv);
+	float o = polar.x;
+	float r = polar.y;
+	
+	float k = numerator / denominator;
+	
+	float dist = INF;
+	
+	float cycle_fac = 0.5 * cos_norm(k) + 0.5;
+	float denom = 1.0 / k;
+	float denom_fac = 0.5 * cos_norm(denom) + 0.5;
+
+	float curve_length;
+	float curve_step = curve_length / k;
+	if (k >= 1.0) {
+		 curve_length = PI * cycle_fac;
+		curve_step = curve_length / k;
+	}
+	else {
+		 curve_length = PI / (denom + denom_fac);
+		curve_step = PI;
+	}
+	
+	int iters;
+	if (k >= 1.0) {
+		iters = max_iters;
+	}
+	else {
+		iters = max_iters;
+	}
+	
+	for(int i = 0; i < iters; ++i) {
+		float lo = o - (float(i) * curve_step);
+		float ko = k * lo;
+		float c = cos(ko);
+		float lr = scale * c + offset;
+		float d = abs(r - lr);
+		dist = min(dist, d);
+	}
+	
+	vec2 frag_size = fwidth(UV);
+	float frag_width = max(frag_size.x, frag_size.y);
+	frag_width /= polar.y;
+	frag_width *= scale;
+	frag_width *= max(1.0, k);
+	frag_width *= 2.0;
+	
+	float fac = smoothstep(frag_width, 0.0, dist);
+	
+	COLOR = vec4(vec3(fac), 1);
+}"
+
+[sub_resource type="ShaderMaterial" id=2]
+shader = SubResource( 1 )
+shader_param/scale = 1.0
+shader_param/offset = 0.0
+shader_param/numerator = 1.0
+shader_param/denominator = 5.0
+shader_param/max_iters = 10
+shader_param/use_time = true
+shader_param/time = 0.0
+
+[node name="Control" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="ColorRect" type="ColorRect" parent="."]
+material = SubResource( 2 )
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -254.311
+margin_top = -255.5
+margin_right = 256.689
+margin_bottom = 255.5
+__meta__ = {
+"_edit_use_anchors_": false
+}
