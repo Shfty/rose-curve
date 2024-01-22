@@ -1,4 +1,6 @@
-[gd_scene load_steps=3 format=2]
+[gd_scene load_steps=4 format=2]
+
+[ext_resource path="res://rose_curve.gd" type="Script" id=1]
 
 [sub_resource type="Shader" id=1]
 code = "shader_type canvas_item;
@@ -108,18 +110,17 @@ void fragment() {
 shader = SubResource( 1 )
 shader_param/scale = 1.0
 shader_param/offset = 0.0
-shader_param/numerator = 1.0
-shader_param/denominator = 5.0
+shader_param/numerator = 5.0
+shader_param/denominator = 7.0
 shader_param/max_iters = 10
-shader_param/use_time = true
+shader_param/use_time = false
 shader_param/time = 0.0
 
-[node name="Control" type="Control"]
+[node name="Control" type="ColorRect"]
 anchor_right = 1.0
 anchor_bottom = 1.0
-__meta__ = {
-"_edit_use_anchors_": false
-}
+color = Color( 0, 0, 0, 1 )
+script = ExtResource( 1 )
 
 [node name="ColorRect" type="ColorRect" parent="."]
 material = SubResource( 2 )
@@ -131,6 +132,3 @@ margin_left = -254.311
 margin_top = -255.5
 margin_right = 256.689
 margin_bottom = 255.5
-__meta__ = {
-"_edit_use_anchors_": false
-}
